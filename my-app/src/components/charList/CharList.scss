@@ -1,0 +1,66 @@
+@import '../../style/variables.scss';
+
+.char {
+    &__content {
+        margin-top: 50px;
+        display: grid;
+        grid-template-columns: 650px 425px;
+        column-gap: 25px;
+        align-items: start;
+    }
+    &__grid {
+        display: grid;
+        grid-template-columns: repeat(3, 200px);
+        column-gap: 25px;
+        row-gap: 30px;
+    }
+    &__item {
+        width: 200px;
+        height: 318px;
+        background-color: $dark;
+        box-shadow: 5px 5px 10px rgba(0, 0, 0, .25);
+        padding: 15px;
+        cursor: pointer;
+        transition: 0.3s transform;
+        img {
+            width: 200px;
+            height: 200px;
+            object-fit: cover;
+            transform: translate(-15px, -15px);
+           
+        }
+        &_selected {
+            transform: translateY(-8px);
+        }
+        &_selected_colored {
+            box-shadow: 0 5px 20px $main-color;
+        }
+    }
+    &__name {
+        font-weight: bold;
+        font-size: 22px;
+        line-height: 29px;
+        text-transform: uppercase;
+        color: #fff;
+    }
+} 
+
+.scroll-to-top {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 1000;
+    width: 0;
+    height: 0;
+    border-left: 20px solid transparent;
+    border-right: 20px solid transparent;
+    border-bottom: 30px solid $main-color;
+
+    &.show {
+        opacity: 1;
+    }
+}
+
