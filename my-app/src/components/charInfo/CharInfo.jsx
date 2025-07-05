@@ -1,5 +1,5 @@
 import './charInfo.scss';
-import { Component } from 'react';
+import { useState, useEffect } from 'react';
 import MarvelService from '../../services/MarvelService';
 
 import Loader from '../spinner/Loader';
@@ -8,76 +8,70 @@ import Skeleton from './../skeleton/Skeleton'
 import propTypes from 'prop-types'
 import errorImg from './../../resources/img/no-image.jpg'
 
-class CharInfo extends Component {
-    state = {
-        char: null,
-        loading: false,
-        error: false
-    }
+const CharInfo = (props) => {
 
-    marvelService = new MarvelService();
+    const [char, setChar] = useState(null);
+    const [loading, setLoading] = useState(false);
+    const [err, setError] = useState(false)
 
-    componentDidMount() {
-        this.updateChar();
 
-    }
 
-    componentDidUpdate (prevProps) {
-        if (this.props.charId !== prevProps.charId) {
-            this.updateChar();
-        }
-    }
+    const marvelService = new MarvelService();
 
-    updateChar = () => {
-        const {charId} = this.props
+    useEffect(() => {
+        updateChar();
+    },[props.charId])
+   
+    // componentDidMount() {
+    //     this.updateChar();
+
+    // }
+
+    // componentDidUpdate (prevProps) {
+    //     if (this.props.charId !== prevProps.charId) {
+    //         this.updateChar();
+    //     }
+    // }
+
+    const updateChar = () => {
+        const {charId} = props;
         if (!charId) {
             return
         }
 
-        this.onCharLoading();
-        this.marvelService
-            .getCharacter(charId)
-            .then(this.onCharLoaded)
-            .catch(this.onError)
+        onCharLoading();
+        marvelService.getCharacter(charId)
+            .then(onCharLoaded)
+            .catch(onError)
     }
 
-    onCharLoaded = (char) => { // записываем в стейт объект , который пришел из промиса и ф-и .getCharacters
-        this.setState({
-            char,
-            loading: false,
-        })
+    const onCharLoaded = (char) => { // записываем в стейт объект , который пришел из промиса и ф-и .getCharacters
+        setChar(char)
+        setLoading(false)
         console.log(char)
     }
 
-    onCharLoading = () => {
-        this.setState({
-            loading: true
-        })
+    const onCharLoading = () => {
+        setLoading(true)
     }
 
-    onError = () => {
-        this.setState({
-            error: true,
-            loading: false
-        })
+    const onError = () => {
+        setError(true)
+        setLoading(false)
     }
-    
-    render () {
-        const {char, loading, error} = this.state;
-        
-        const skeleton = char || loading || error ? null : <Skeleton/>
-        const errorMsg = error ? <Error/> : null
-        const spinner = loading ? <Loader/> : null
-        const content = !(loading || error || !char) ? <View char ={char}/> : null
-        return (
-            <div className="char__info">
-                {skeleton}
-                {errorMsg}
-                {spinner}
-                {content}
-            </div>
-        )
-    } 
+     
+    const skeleton = char || loading || err ? null : <Skeleton/>
+    const errorMsg = err ? <Error/> : null
+    const spinner = loading ? <Loader/> : null
+    const content = !(loading || err || !char) ? <View char ={char}/> : null
+    return (
+        <div className="char__info">
+            {skeleton}
+            {errorMsg}
+            {spinner}
+            {content}
+        </div>
+    )
 }
 
 const View = ({char}) => {

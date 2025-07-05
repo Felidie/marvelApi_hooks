@@ -1,128 +1,137 @@
 import './charList.scss';
 import MarvelService from '../../services/MarvelService';
 import Error from './../error/Error'
-import { Component } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import Loader from '../spinner/Loader';
 import propTypes from 'prop-types'
 
-class CharList extends Component {
-    state = {
-        charList: [],
-        loading: true,
-        error: false,
-        offset: null,
-        newItemLoading: false, // свой-во для управлния активностью кнопки
-        charEnded: false,
-        activeId: null,
-        hoveredId: null,
-        pageUp: false
-    }
+const CharList = (props) => {
 
-    marvelService = new MarvelService(); // создаем новый объект класса
+    const [charList, setCharList] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(false);
+    const [offset, setOffset] = useState(0);
+    const [newItemLoading, setItemLoading] = useState(false); // свой-во для управлния активностью кнопки
+    const [charEnded, setCharEnded] = useState(false);
+    const [activeId, setActiveId] =  useState(null);
+    const [hoveredId, sethHoveredId] = useState(null);
+    const [pageUp, setPageUp] = useState(false);
+    
+    const marvelService = new MarvelService(); // создаем новый объект класса
 
-    componentDidMount = () => { // первая загрзка и начало жизенного цикла
-        this.onRequest(); //первый вызов в агрументе Null значит в начале в .getAllCharacters(offset), offset будет значение по дефолту offset = this._baseOffset
-        window.addEventListener('scroll', this.onLoadByScroll)
-        window.addEventListener('scroll', this.onHandleScroll)
-    }
+    useEffect(() => {
+        onRequest(); //первый вызов в агрументе Null значит в начале в .getAllCharacters(offset), offset будет значение по дефолту offset = this._baseOffset
+    },[])
 
-    componentWillUnmount = () => {
-        window.removeEventListener('scroll', this.onLoadByScroll)
-        window.removeEventListener('scroll', this.onHandleScroll)
-    }
+    useEffect(() =>{
+        window.addEventListener('scroll', onLoadByScroll)
+        window.addEventListener('scroll', onHandleScroll)
 
-    onRequest = (offset) => {
-        this.onCharListLoading(); // перед загрузкой нового контента, активируем ф-ю, что бы кнопка уже не нажималась
-        this.marvelService 
-        .getAllCharacters(offset) // метод по получению данных с сервера, в кот-м уже объект
-        .then(this.onCharListLoaded) //помещаем новый объект в стейт
-        .catch(this.onError)
-    }
+        return () => {
+            window.removeEventListener('scroll', onLoadByScroll)
+            window.removeEventListener('scroll', onHandleScroll)
+        }
+    }, [offset])
 
-    onCharListLoaded = (newCharList) => { // передаем как-то новый объект, кот-й пришел с сервера
+    const onRequest = useCallback(() => {
+        // if (newItemLoading || charEnded) return;
+
+         onCharListLoading();
+         marvelService.getAllCharacters(offset)
+                        .then(onCharListLoaded)
+                        .catch(onError);
+    },[offset,charEnded,newItemLoading,charList])
+
+    const onCharListLoaded = (newCharList) => { // передаем как-то новый объект, кот-й пришел с сервера
         let ended = false; // индикатор, если персонажи еще есть в бд то фолс
         if (newCharList.length < 9) { // если в новом объекте с сервера меньше 9 персов, значит они заканчиваются в бд
             ended = true; // и индикатор теперь тру, а значит в инлайн стилях скрываем кнопку "load more"
         }
 
-        this.setState(({charList, offset}) => ({ // меняем стейт, запуская колюэк ф-ю, что бы данные менялись синхронно
-            charList: [...charList,...newCharList], // развоарачиваем старый объект(при певом запуске пустой, длальше хранит предыд стейт) и добавдяем новый объект
-            loading: false,
-            offset: offset + 9, // меняем офсет на 9, что бы песонажи кажлый раз двигались на 9 позиций
-            newItemLoading: false, // когда все персы прорузились, меняем на фолз, что бы кнопка была снова активна
-            charEnded: ended // вычисляем закончились ли персножи или нет
-        }))
-
+        setCharList(charList =>[...charList,...newCharList]);
+        setLoading(false);
+        setOffset(offset => offset + 9);
+        setItemLoading(newItemLoading => false);
+        setCharEnded(charEnded => ended)
     }
 
-    onLoadByScroll = () => {
-        let offset = this.state.offset
+
+//     useEffect(() => {
+//   console.log('offset увеличен:', offset);
+// }, [offset]);
+
+    const onLoadByScroll = () => {
+        // let offset = offset
         let scrollHeight = document.documentElement.scrollHeight;
 
         if(window.scrollY + document.documentElement.clientHeight >= scrollHeight) {
-            this.onRequest(offset)
+            onRequest(offset);
         }
     }
 
+    // const onLoadByScroll = useCallback(() => { // способ отслеживания офсета с помощью рефов
+    //      let scrollHeight = document.documentElement.scrollHeight;
+        
+
+    //     if(window.scrollY + document.documentElement.clientHeight >= scrollHeight) {
+    //         onRequest(offsetScroll);
+    //     }
+    // })
+
+    // const offsetScroll = useRef(offset);
+
+    // useEffect (() => {
+    //     offsetScroll.current = offset
+    // }, [offset])
 
 
-    onCharListLoading = () => { // при загрузке, меняем на тру(когда загружается disabld = true и кнопка не активна)
-        this.setState({
-            newItemLoading: true
-        })
+
+    const onCharListLoading = () => { // при загрузке, меняем на тру(когда загружается disabld = true и кнопка не активна)
+        setItemLoading(true)
     }
 
-    onError = () => {
-        this.setState({
-            error: true,
-            loading: false
-        })
+    const onError = () => {
+        setError(true);
+        setLoading(false);
     }
 
-    onSetActiveId = (id) => {
-        this.setState({
-            activeId: id
-        })
+    const onSetActiveId = (id) => {
+        setActiveId(id);
     }
 
-    onSetHoveredId = (id) => {
-        this.setState({
-            hoveredId: id
-        })
+    const onSetHoveredId = (id) => {
+        sethHoveredId(id)
     }
 
-    onHandleScroll = () => {
+    const onHandleScroll = () => {
         const scrollTop = window.scrollY || document.documentElement.scrollTop;
         if (scrollTop > 300) {
-            this.setState({ pageUp: true });
+            setPageUp(true);
         } else {
-            this.setState({ pageUp: false });
+            setPageUp(false);
         }
     }
 
-    scrollToTop = () => {
+    const scrollToTop = () => {
         window.scrollTo({
             top: 0,
             behavior: 'smooth',
         });
     }
 
-    renderItems = (itemsList) => {
+    const renderItems = (itemsList) => {
         const items = itemsList.map(item => {
             let imgStyle = {'objectFit' : 'cover'};
             if (item.thumbnail === 'http://i.annihil.us/u/prod/marvel/i/mg/b/40/image_not_available.jpg') {
             imgStyle = {'objectFit' : 'unset'};
             } 
             return (
-                <li className={item.id === this.state.activeId ? "char__item char__item_selected char__item_selected_colored" : item.id === this.state.hoveredId ? "char__item char__item_selected char__item_selected" : "char__item"}
+                <li className={item.id === activeId ? "char__item char__item_selected char__item_selected_colored" : item.id === hoveredId ? "char__item char__item_selected char__item_selected" : "char__item"}
                     tabIndex={0}
                     key ={item.id}
-                    onClick={() => {
-                                    this.props.onCharSelected(item.id);
-                    }}
-                    onFocus={()=> this.onSetActiveId(item.id)}
-                    onMouseEnter={()=> this.onSetHoveredId(item.id)}
-                    >
+                    onClick={() => props.onCharSelected(item.id)}
+                    onFocus={()=> onSetActiveId(item.id)}
+                    onMouseEnter={()=> onSetHoveredId(item.id)}>
                     <img src={item.thumbnail} alt="abyss" style={imgStyle}/>
                     <div className="char__name">{item.name}</div>
                 </li>
@@ -134,34 +143,31 @@ class CharList extends Component {
             </ul>
         )
     }
-    
-    render () {
-        const {loading, charList, error, offset, newItemLoading, charEnded, pageUp} = this.state;
-        const items = this.renderItems(charList)
 
-        const errorMsg = error ? <Error/> : null
-        const spinner = loading ? <Loader/> : null
-        const content = !(loading || error) ? items : null
+    const items = renderItems(charList)
 
-        return (
-                <div className="char__list">
-                        {errorMsg}
-                        {spinner}
-                        {content}
-                    <button className="button button__main button__long"
-                            onClick={() => this.onRequest(offset)}
-                            disabled={newItemLoading}
-                            style ={{'display': charEnded ? 'none' : 'block'}}>
-                        <div className="inner">
-                            load more</div>
-                    </button>
-                    <div
-                        className={`scroll-to-top ${pageUp ? 'show' : ''}`}
-                        onClick={this.scrollToTop}>
-                    </div>
+    const errorMsg = error ? <Error/> : null
+    const spinner = loading ? <Loader/> : null
+    const content = !(loading || error) ? items : null
+
+    return (
+            <div className="char__list">
+                    {errorMsg}
+                    {spinner}
+                    {content}
+                <button className="button button__main button__long"
+                        onClick={onRequest}
+                        disabled={newItemLoading}
+                        style ={{'display': charEnded ? 'none' : 'block'}}>
+                    <div className="inner">
+                        load more</div>
+                </button>
+                <div
+                    className={`scroll-to-top ${pageUp ? 'show' : ''}`}
+                    onClick={scrollToTop}>
                 </div>
-        )
-    }
+            </div>
+    )
 }
 
 CharList.propTypes = {
