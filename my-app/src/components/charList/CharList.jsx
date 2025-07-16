@@ -1,23 +1,22 @@
 import './charList.scss';
-import MarvelService from '../../services/MarvelService';
+import useMarvelService from '../../services/MarvelService';
 import Error from './../error/Error'
-import { useState, useEffect, useCallback, useRef } from 'react';
+import errorImg from './../../resources/img/no-image.jpg'
+import { useState, useEffect, useCallback} from 'react';
 import Loader from '../spinner/Loader';
 import propTypes from 'prop-types'
 
 const CharList = (props) => {
 
     const [charList, setCharList] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(false);
     const [offset, setOffset] = useState(0);
     const [newItemLoading, setItemLoading] = useState(false); // свой-во для управлния активностью кнопки
     const [charEnded, setCharEnded] = useState(false);
     const [activeId, setActiveId] =  useState(null);
-    const [hoveredId, sethHoveredId] = useState(null);
+    const [hoveredId, setHoveredId] = useState(null);
     const [pageUp, setPageUp] = useState(false);
     
-    const marvelService = new MarvelService(); // создаем новый объект класса
+    const {loading, error, getAllCharacters, clearError} = useMarvelService(); // создаем новый объект класса
 
     useEffect(() => {
         onRequest(); //первый вызов в агрументе Null значит в начале в .getAllCharacters(offset), offset будет значение по дефолту offset = this._baseOffset
@@ -31,16 +30,17 @@ const CharList = (props) => {
             window.removeEventListener('scroll', onLoadByScroll)
             window.removeEventListener('scroll', onHandleScroll)
         }
-    }, [offset])
+    }, [newItemLoading])
 
     const onRequest = useCallback(() => {
-        // if (newItemLoading || charEnded) return;
+        
 
-         onCharListLoading();
-         marvelService.getAllCharacters(offset)
+        // initial ?  setItemLoading(true) :  setItemLoading(false);
+        if (newItemLoading || charEnded) return;
+        setItemLoading(true);
+        getAllCharacters(offset)
                         .then(onCharListLoaded)
-                        .catch(onError);
-    },[offset,charEnded,newItemLoading,charList])
+    },[offset,charEnded,charList, newItemLoading])
 
     const onCharListLoaded = (newCharList) => { // передаем как-то новый объект, кот-й пришел с сервера
         let ended = false; // индикатор, если персонажи еще есть в бд то фолс
@@ -49,25 +49,22 @@ const CharList = (props) => {
         }
 
         setCharList(charList =>[...charList,...newCharList]);
-        setLoading(false);
         setOffset(offset => offset + 9);
         setItemLoading(newItemLoading => false);
         setCharEnded(charEnded => ended)
     }
 
-
-//     useEffect(() => {
-//   console.log('offset увеличен:', offset);
-// }, [offset]);
-
-    const onLoadByScroll = () => {
+    const onLoadByScroll = useCallback(() => {
         // let offset = offset
-        let scrollHeight = document.documentElement.scrollHeight;
+        const scrollHeight = document.documentElement.scrollHeight;
+        const currentScroll = window.scrollY + document.documentElement.clientHeight;
 
-        if(window.scrollY + document.documentElement.clientHeight >= scrollHeight) {
+        if (newItemLoading || charEnded) return;
+                
+        if (currentScroll >= scrollHeight - 1) {
             onRequest(offset);
         }
-    }
+    }, [newItemLoading, charEnded, onRequest])
 
     // const onLoadByScroll = useCallback(() => { // способ отслеживания офсета с помощью рефов
     //      let scrollHeight = document.documentElement.scrollHeight;
@@ -84,23 +81,12 @@ const CharList = (props) => {
     //     offsetScroll.current = offset
     // }, [offset])
 
-
-
-    const onCharListLoading = () => { // при загрузке, меняем на тру(когда загружается disabld = true и кнопка не активна)
-        setItemLoading(true)
-    }
-
-    const onError = () => {
-        setError(true);
-        setLoading(false);
-    }
-
     const onSetActiveId = (id) => {
         setActiveId(id);
     }
 
     const onSetHoveredId = (id) => {
-        sethHoveredId(id)
+        setHoveredId(id)
     }
 
     const onHandleScroll = () => {
@@ -132,7 +118,7 @@ const CharList = (props) => {
                     onClick={() => props.onCharSelected(item.id)}
                     onFocus={()=> onSetActiveId(item.id)}
                     onMouseEnter={()=> onSetHoveredId(item.id)}>
-                    <img src={item.thumbnail} alt="abyss" style={imgStyle}/>
+                    <img src={item.thumbnail} alt="abyss" style={imgStyle} onError={(e) => e.target.src = errorImg}/>
                     <div className="char__name">{item.name}</div>
                 </li>
             )
@@ -147,14 +133,14 @@ const CharList = (props) => {
     const items = renderItems(charList)
 
     const errorMsg = error ? <Error/> : null
-    const spinner = loading ? <Loader/> : null
-    const content = !(loading || error) ? items : null
+    const spinner = newItemLoading ? <Loader/> : null
+
 
     return (
             <div className="char__list">
                     {errorMsg}
                     {spinner}
-                    {content}
+                    {items}
                 <button className="button button__main button__long"
                         onClick={onRequest}
                         disabled={newItemLoading}

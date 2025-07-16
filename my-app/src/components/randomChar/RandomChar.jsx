@@ -1,16 +1,16 @@
 import './randomChar.scss';
 import { useState, useEffect } from 'react';
+import { useHttp } from '../hooks/http.hook';
+import errorImg from './../../resources/img/no-image.jpg'
 import mjolnir from './../../resources/img/mjolnir.png'
-import MarvelService from '../../services/MarvelService';
+import useMarvelService from '../../services/MarvelService';
 import Loader from '../spinner/Loader';
-import Error from '../error/Error'
+import Error from '../error/Error';
 
 const RandomChar = () => {
     const [char, setChar] = useState({});
-    const [loading, setLoading] = useState(true);
-    const [err, setErr] = useState(false);
 
-    const marvelService = new MarvelService(); //создаем новый экщемпляр марвел сервиса, где лежат все методы для обращения к апи
+    const {loading, error, getCharacter, clearError} = useMarvelService(); //создаем новый экщемпляр марвел сервиса, где лежат все методы для обращения к апи
 
     useEffect(() => {
        updateChar(); 
@@ -18,33 +18,20 @@ const RandomChar = () => {
 
     const onCharLoaded = (char) => { // записываем в стейт объект , который пришел из промиса и ф-и .getCharacters
         setChar(char);
-        setLoading(false);
-        setErr(false);
-    }
-
-    const onCharLoading = () => {
-        setLoading(true);
     }
 
     const updateChar = () => {// создаем новую ф-ю для обновления стейта
-        onCharLoading();
+        clearError(); // если была ошибка, ставим еке в null
         // const id = Math.floor(Math.random() * (1011400 - 1011000) + 1011000); Для оригинально апи марвел
         const id = Math.floor(Math.random() * (20 - 0) + 0)
-        marvelService.getCharacter(id) // метод с получение одного персножа с рандомный айди
+        getCharacter(id) // метод с получение одного персножа с рандомный айди
                      .then(onCharLoaded) // обрабатываем промис, колююеком передеаем ф-ю, которая записывает в стейт объект с персонажем char(char из 
         //аргумента onCharLoaded подставляется как (res=>) ранее в промисе)
-                     .catch(onError)
-    }
-
-    const onError = () => {
-        console.log('Ошибка')
-        setLoading(false);
-        setErr(true)
     }
         
     const spinner = loading ? <Loader/> : null;
-    const errorMsg = err ? <Error/> : null;
-    const content = !(loading || err) ? <AfterLoading char={char}/> : null;
+    const errorMsg = error ? <Error/> : null;
+    const content = !(loading || error) ? <AfterLoading char={char}/> : null;
     
     return (
         <div className="randomchar">
@@ -78,7 +65,8 @@ const AfterLoading = ({char}) => {
 
         return (
             <div className="randomchar__block">
-                <img src={thumbnail} alt="Random character" className="randomchar__img" style={imgStyle}/>
+                <img src={thumbnail} alt="Random character" className="randomchar__img" style={imgStyle} onError={(e) => e.target.src = errorImg}
+                />
                 <div className="randomchar__info">
                     <p className="randomchar__name">{name}</p>
                     <p className="randomchar__descr">{description ? description : 'Нет описания'}</p>
