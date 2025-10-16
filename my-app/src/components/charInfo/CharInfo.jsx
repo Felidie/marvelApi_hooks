@@ -81,11 +81,9 @@ const View = ({char}) => {
                 comics.map((item, i) => {
                    return (
                     <li className="char__comics-item" key={i}>
-                        {/* <a href={item.link} target="_blank" rel="noreferrer">
+                        <a href={item.link} target="_blank" rel="noreferrer">
                             {item.name}
-                        </a> */} 
-                        {/* для оригинального марвел апи */}
-                        {item}
+                        </a> 
                     </li>
                    )
                 })

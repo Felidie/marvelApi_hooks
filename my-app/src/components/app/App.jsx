@@ -1,16 +1,11 @@
-// import AppHeader from "../appHeader/AppHeader";
-// import RandomChar from "../randomChar/RandomChar";
-// import CharList from "../charList/CharList";
-// import CharInfo from "../charInfo/CharInfo";
-// import ErrorBoundary from "../errorBoundary/ErrorBoudary";
-// import ComicsList from "../comicsList/ComicsList";
 
-// import decoration from '../../resources/img/vision.png';
-// import {useState } from "react";
 import AppHeader from '../appHeader/AppHeader'
 import MainPage from '../pages/MainPage'
 import ComicsPage from '../pages/ComicsPage'
+import Page404 from '../pages/404'
+import SingleComicPage from '../pages/singleComicPage'
 import {BrowserRouter as Router, Route, Routes} from 'react-router-dom'
+
 
 
 const App = () => {
@@ -20,27 +15,13 @@ const App = () => {
          <div className="app">
             <AppHeader/>
             <main>
-                
-                {/* <Switch>
-                <Route exact path="/">
-                    <ErrorBoundary><RandomChar/></ErrorBoundary>
-                        <div className="char__content">
-                    <ErrorBoundary><CharList onCharSelected= {onCharSelected}/></ErrorBoundary>
-                    <ErrorBoundary><CharInfo charId={selectedChar}/></ErrorBoundary>
-                        </div>
-                        <img className="bg-decoration" src={decoration} alt="vision"/>
-                </Route>
-
-                <Route exact path="/comics">
-                    <ComicsList/>
-                </Route>
-                </Switch>
-                */}
-
-                <Routes>
-                    <Route path="/" element={<MainPage/>}/>
-                    <Route path="/comics" element={<ComicsPage/>}/>
-                </Routes>
+            
+            <Routes>
+                <Route path="/" element={<MainPage/>}/>
+                <Route path="/comics" element={<ComicsPage/>}/>
+                <Route path ="*" element={<Page404/>}/>
+                <Route path ="/comics/:comicId" element={<SingleComicPage/>}/>
+            </Routes>
 
             </main>
         </div>
