@@ -16,23 +16,22 @@ const CharList = (props) => {
     const [hoveredId, setHoveredId] = useState(null);
     const [pageUp, setPageUp] = useState(false);
     
-    const {loading, error, getAllCharacters, clearError} = useMarvelService(); // создаем новый объект класса
+    const {error, getAllCharacters} = useMarvelService(); // создаем новый объект класса
 
     useEffect(() => {
+        console.log('Первый рендер и загрузка персонажей')
         onRequest(); //первый вызов в агрументе Null значит в начале в .getAllCharacters(offset), offset будет значение по дефолту offset = this._baseOffset
     },[])
 
     useEffect(() =>{
-        window.addEventListener('scroll', onLoadByScroll)
         window.addEventListener('scroll', onHandleScroll)
 
         return () => {
-            window.removeEventListener('scroll', onLoadByScroll)
             window.removeEventListener('scroll', onHandleScroll)
         }
     }, [newItemLoading])
 
-    const onRequest = useCallback(() => {
+    const onRequest = (offset) => {
         
 
         // initial ?  setItemLoading(true) :  setItemLoading(false);
@@ -40,7 +39,9 @@ const CharList = (props) => {
         setItemLoading(true);
         getAllCharacters(offset)
                         .then(onCharListLoaded)
-    },[offset,charEnded,charList, newItemLoading])
+                        console.log('Подгружаем персонажей')
+        
+    }
 
     const onCharListLoaded = (newCharList) => { // передаем как-то новый объект, кот-й пришел с сервера
         let ended = false; // индикатор, если персонажи еще есть в бд то фолс
@@ -52,34 +53,25 @@ const CharList = (props) => {
         setOffset(offset => offset + 9);
         setItemLoading(newItemLoading => false);
         setCharEnded(charEnded => ended)
-    }
 
-    const onLoadByScroll = useCallback(() => {
-        // let offset = offset
-        const scrollHeight = document.documentElement.scrollHeight;
-        const currentScroll = window.scrollY + document.documentElement.clientHeight;
+        console.log('Меняем стейт')
+        console.log(offset)
 
-        if (newItemLoading || charEnded) return;
-                
-        if (currentScroll >= scrollHeight - 1) {
-            onRequest(offset);
-        }
-    }, [newItemLoading, charEnded, onRequest])
-
-    // const onLoadByScroll = useCallback(() => { // способ отслеживания офсета с помощью рефов
-    //      let scrollHeight = document.documentElement.scrollHeight;
         
 
-    //     if(window.scrollY + document.documentElement.clientHeight >= scrollHeight) {
-    //         onRequest(offsetScroll);
+    }
+
+    // const onLoadByScroll = useCallback(() => {
+    //     // let offset = offset
+    //     const scrollHeight = document.documentElement.scrollHeight;
+    //     const currentScroll = window.scrollY + document.documentElement.clientHeight;
+
+    //     if (newItemLoading || charEnded) return;
+                
+    //     if (currentScroll >= scrollHeight - 1) {
+    //         onRequest(offset);
     //     }
-    // })
-
-    // const offsetScroll = useRef(offset);
-
-    // useEffect (() => {
-    //     offsetScroll.current = offset
-    // }, [offset])
+    // }, [newItemLoading, charEnded, onRequest, offset])
 
     const onSetActiveId = (id) => {
         setActiveId(id);
@@ -91,11 +83,11 @@ const CharList = (props) => {
 
     const onHandleScroll = () => {
         const scrollTop = window.scrollY || document.documentElement.scrollTop;
-        if (scrollTop > 300) {
-            setPageUp(true);
-        } else {
-            setPageUp(false);
-        }
+            if (scrollTop > 300) {
+                setPageUp(true);
+            } else {
+                setPageUp(false);
+            }
     }
 
     const scrollToTop = () => {
@@ -106,7 +98,7 @@ const CharList = (props) => {
     }
 
     const renderItems = (itemsList) => {
-        const items = itemsList.map(item => {
+        const items = itemsList.map((item, index) => {
             let imgStyle = {'objectFit' : 'cover'};
             if (item.thumbnail === 'http://i.annihil.us/u/prod/marvel/i/mg/b/40/image_not_available.jpg') {
             imgStyle = {'objectFit' : 'unset'};
@@ -114,7 +106,7 @@ const CharList = (props) => {
             return (
                 <li className={item.id === activeId ? "char__item char__item_selected char__item_selected_colored" : item.id === hoveredId ? "char__item char__item_selected char__item_selected" : "char__item"}
                     tabIndex={0}
-                    key ={item.id}
+                    key ={`${item.id}-${index}`}
                     onClick={() => props.onCharSelected(item.id)}
                     onFocus={()=> onSetActiveId(item.id)}
                     onMouseEnter={()=> onSetHoveredId(item.id)}>
@@ -135,14 +127,13 @@ const CharList = (props) => {
     const errorMsg = error ? <Error/> : null
     const spinner = newItemLoading ? <Loader/> : null
 
-
     return (
             <div className="char__list">
                     {errorMsg}
                     {spinner}
                     {items}
                 <button className="button button__main button__long"
-                        onClick={onRequest}
+                        onClick={() => onRequest(offset)}
                         disabled={newItemLoading}
                         style ={{'display': charEnded ? 'none' : 'block'}}>
                     <div className="inner">
@@ -151,6 +142,7 @@ const CharList = (props) => {
                 <div
                     className={`scroll-to-top ${pageUp ? 'show' : ''}`}
                     onClick={scrollToTop}>
+
                 </div>
             </div>
     )

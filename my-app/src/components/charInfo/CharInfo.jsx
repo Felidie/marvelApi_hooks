@@ -1,6 +1,7 @@
 import './charInfo.scss';
 import { useState, useEffect } from 'react';
 import useMarvelService from '../../services/MarvelService';
+import {Link} from 'react-router-dom'
 
 import Loader from '../spinner/Loader';
 import Error from '../error/Error'
@@ -50,11 +51,15 @@ const CharInfo = (props) => {
 }
 
 const View = ({char}) => {
-    const {name, thumbnail, description, homepage, wiki, comics} = char;
+    const {name, thumbnail, description, homepage, wiki, comics, resourceURI} = char;
     let imgStyle = {'objectFit' : 'cover'};
     if (thumbnail === 'http://i.annihil.us/u/prod/marvel/i/mg/b/40/image_not_available.jpg') {
         imgStyle = {'objectFit' : 'contain'};
     }
+
+    const getComicId = (uri) => uri.split('/').pop();
+
+    console.log(resourceURI)
 
     return (
         <>
@@ -79,11 +84,12 @@ const View = ({char}) => {
         <ul className="char__comics-list">
             {
                 comics.map((item, i) => {
+                   const comicId = getComicId(item.resourceURI);
                    return (
                     <li className="char__comics-item" key={i}>
-                        <a href={item.link} target="_blank" rel="noreferrer">
+                        <Link to={`/comics/${comicId}`} rel="noreferrer">
                             {item.name}
-                        </a> 
+                       </Link>
                     </li>
                    )
                 })

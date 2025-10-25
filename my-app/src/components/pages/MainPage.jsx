@@ -1,12 +1,11 @@
 import CharList from "../charList/CharList";
-import CharInfo from "../charInfo/CharInfo";
 import RandomChar from "../randomChar/RandomChar";
-
 import ErrorBoundary from "../errorBoundary/ErrorBoudary";
 import decoration from '../../resources/img/vision.png';
 
-import {useState } from "react";
+import {useState, lazy, Suspense } from "react";
 
+const CharInfo = lazy(()=> import('../charInfo/CharInfo'));
 
 const MainPage = () => {
 
@@ -18,18 +17,20 @@ const MainPage = () => {
         
     return (
         <>
-            <ErrorBoundary>
-                <RandomChar/>
-            </ErrorBoundary>
-            <div className="char__content">
+            <Suspense>
                 <ErrorBoundary>
-                    <CharList onCharSelected= {onCharSelected}/>
+                    <RandomChar/>
                 </ErrorBoundary>
-                <ErrorBoundary>
-                    <CharInfo charId={selectedChar}/>
-                </ErrorBoundary>
-            </div>
-            <img className="bg-decoration" src={decoration} alt="vision"/>
+                <div className="char__content">
+                    <ErrorBoundary>
+                        <CharList onCharSelected= {onCharSelected}/>
+                    </ErrorBoundary>
+                    <ErrorBoundary>
+                        <CharInfo charId={selectedChar}/>
+                    </ErrorBoundary>
+                </div>
+                <img className="bg-decoration" src={decoration} alt="vision"/>
+            </Suspense>
         </>
     )
 }

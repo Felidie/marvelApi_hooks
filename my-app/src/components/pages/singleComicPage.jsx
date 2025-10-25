@@ -1,9 +1,10 @@
-import { useParams, Link } from 'react-router-dom'
+import { useParams,useNavigate } from 'react-router-dom'
 import { useState, useEffect } from 'react';
 
 import './singleComicPage.scss';
 import Loader from '../spinner/Loader';
 import useMarvelService from '../../services/MarvelService';
+import Error from '../error/Error';
 import AppBanner from './../appBanner/AppBanner'
 
 const SingleComicPage = () => {
@@ -11,7 +12,12 @@ const SingleComicPage = () => {
     const [comic, setComic] = useState(null);
     const {loading, error, clearError, getComic} = useMarvelService();
 
-    
+    const navigate = useNavigate();
+
+    const goBack = () => {
+        navigate(-1)
+    }
+
     useEffect(() => {
         updateComic();
     },[comicId])
@@ -33,16 +39,16 @@ const SingleComicPage = () => {
 
         return (
             <div className="single-comic">
-            <img src={thumbnail} alt={title} className="single-comic__img"/>
-            <div className="single-comic__info">
-                <h2 className="single-comic__name">{title}</h2>
-                <p className="single-comic__descr">{description}</p>
-                <p className="single-comic__descr">{pages}</p>
-                <p className="single-comic__descr">{lang}</p>
-                <div className="single-comic__price">{price}</div>
+                <img src={thumbnail} alt={title} className="single-comic__img"/>
+                    <div className="single-comic__info">
+                        <h2 className="single-comic__name">{title}</h2>
+                        <p className="single-comic__descr">{description}</p>
+                        <p className="single-comic__descr">{pages}</p>
+                        <p className="single-comic__descr">{lang}</p>
+                        <div className="single-comic__price">{price}</div>
+                    </div>
+                <div onClick ={goBack} className="single-comic__back">Back</div>
             </div>
-            <Link to ="/comics" className="single-comic__back">Back to all</Link>
-        </div>
         )
     }
 

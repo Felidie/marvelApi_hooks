@@ -5,7 +5,7 @@ const useMarvelService = () => {
   
     const _apiBase = 'https://gateway.marvel.com:443/v1/public/';
     const _apiKey = 'apikey=2ec7d01b0a963e1748160f12eb189cf0';
-    const _baseOffset = 210;
+    const _baseOffset = 450;
 
 
     const getAllCharacters = async(offset = _baseOffset) => {
@@ -43,7 +43,8 @@ const useMarvelService = () => {
                 //    link: item.resourceURI
                 // }))
                 // : [] // запрос по комиксах для настоящего апи марвел
-                comics: char.comics.items
+                comics: char.comics.items,
+                resourceURI: char.resourceURI
         }
     }
 
