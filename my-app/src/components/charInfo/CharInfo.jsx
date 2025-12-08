@@ -1,7 +1,7 @@
 import './charInfo.scss';
 import { useState, useEffect } from 'react';
 import useMarvelService from '../../services/MarvelService';
-import {Link} from 'react-router-dom'
+
 
 import Loader from '../spinner/Loader';
 import Error from '../error/Error'
@@ -14,12 +14,12 @@ const CharInfo = (props) => {
     const [char, setChar] = useState(false)
 
 
-
     const {loading, err, getCharacter, clearError} = useMarvelService();
 
     useEffect(() => {
         updateChar();
     },[props.charId])
+
    
     const updateChar = () => {
         const {charId} = props;
@@ -39,7 +39,7 @@ const CharInfo = (props) => {
     const skeleton = char || loading || err ? null : <Skeleton/>
     const errorMsg = err ? <Error/> : null
     const spinner = loading ? <Loader/> : null
-    const content = !(loading || err || !char) ? <View char ={char}/> : null
+    const content = !(loading || err || !char) ? <View char={char}/> : null
     return (
         <div className="char__info">
             {skeleton}
@@ -57,9 +57,10 @@ const View = ({char}) => {
         imgStyle = {'objectFit' : 'contain'};
     }
 
-    const getComicId = (uri) => uri.split('/').pop();
+    // const getComicId = (uri) => uri.split('/').pop();
 
     console.log(resourceURI)
+
 
     return (
         <>
@@ -84,18 +85,18 @@ const View = ({char}) => {
         <ul className="char__comics-list">
             {
                 comics.map((item, i) => {
-                   const comicId = getComicId(item.resourceURI);
+                //    const comicId = getComicId(item.resourceURI);
                    return (
                     <li className="char__comics-item" key={i}>
-                        <Link to={`/comics/${comicId}`} rel="noreferrer">
+                        {/* <Link to={`/comics/${comicId}`} rel="noreferrer"> */}
                             {item.name}
-                       </Link>
+                       {/* </Link> */}
                     </li>
                    )
                 })
             }
         </ul>
-    </>
+        </>
     )
 }
 

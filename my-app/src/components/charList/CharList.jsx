@@ -2,7 +2,8 @@ import './charList.scss';
 import useMarvelService from '../../services/MarvelService';
 import Error from './../error/Error'
 import errorImg from './../../resources/img/no-image.jpg'
-import { useState, useEffect, useCallback} from 'react';
+import React, { useState, useEffect} from 'react';
+import {CSSTransition, TransitionGroup} from 'react-transition-group'
 import Loader from '../spinner/Loader';
 import propTypes from 'prop-types'
 
@@ -15,6 +16,8 @@ const CharList = (props) => {
     const [activeId, setActiveId] =  useState(null);
     const [hoveredId, setHoveredId] = useState(null);
     const [pageUp, setPageUp] = useState(false);
+
+
     
     const {error, getAllCharacters} = useMarvelService(); // создаем новый объект класса
 
@@ -97,30 +100,36 @@ const CharList = (props) => {
         });
     }
 
-    const renderItems = (itemsList) => {
-        const items = itemsList.map((item, index) => {
+const renderItems = (itemsList) => {
+      const items = itemsList.map((item, index) => {
             let imgStyle = {'objectFit' : 'cover'};
             if (item.thumbnail === 'http://i.annihil.us/u/prod/marvel/i/mg/b/40/image_not_available.jpg') {
             imgStyle = {'objectFit' : 'unset'};
             } 
+            const itemRef = React.createRef();
             return (
-                <li className={item.id === activeId ? "char__item char__item_selected char__item_selected_colored" : item.id === hoveredId ? "char__item char__item_selected char__item_selected" : "char__item"}
-                    tabIndex={0}
-                    key ={`${item.id}-${index}`}
-                    onClick={() => props.onCharSelected(item.id)}
-                    onFocus={()=> onSetActiveId(item.id)}
-                    onMouseEnter={()=> onSetHoveredId(item.id)}>
-                    <img src={item.thumbnail} alt="abyss" style={imgStyle} onError={(e) => e.target.src = errorImg}/>
-                    <div className="char__name">{item.name}</div>
-                </li>
+                <CSSTransition timeout={500} classNames="char__item" in={true} nodeRef={itemRef}>
+                    <li className={item.id === activeId ? "char__item char__item_selected char__item_selected_colored" : item.id === hoveredId ? "char__item char__item_selected char__item_selected" : "char__item"}
+                        tabIndex={0}
+                        ref={itemRef}
+                        key ={`${item.id}-${index}`}
+                        onClick={() => props.onCharSelected(item.id)}
+                        onFocus={()=> onSetActiveId(item.id)}
+                        onMouseEnter={()=> onSetHoveredId(item.id)}>
+                        <img src={item.thumbnail} alt="abyss" style={imgStyle} onError={(e) => e.target.src = errorImg}/>
+                        <div className="char__name" >{item.name}</div>
+                    </li>  
+                </CSSTransition>
             )
         })
         return (
             <ul className="char__grid">
-                {items}
+              <TransitionGroup component={null}>
+                  {items}
+              </TransitionGroup>
             </ul>
         )
-    }
+}
 
     const items = renderItems(charList)
 

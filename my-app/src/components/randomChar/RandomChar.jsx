@@ -23,7 +23,7 @@ const RandomChar = () => {
     const updateChar = () => {// создаем новую ф-ю для обновления стейта
         clearError(); // если была ошибка, ставим еке в null
         // const id = Math.floor(Math.random() * (1011400 - 1011000) + 1011000); Для оригинально апи марвел
-        const id = Math.floor(Math.random() * (1011400 - 1011000)) + 1011000;
+        const id = Math.floor(Math.random() * 21);
         getCharacter(id) // метод с получение одного персножа с рандомный айди
                      .then(onCharLoaded) // обрабатываем промис, колююеком передеаем ф-ю, которая записывает в стейт объект с персонажем char(char из 
         //аргумента onCharLoaded подставляется как (res=>) ранее в промисе)
