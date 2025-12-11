@@ -28,6 +28,10 @@ const useMarvelService = () => {
     return _transformComics(res.data.results[0]); // возвращаем работу метода(т.е новый объект)
     }
 
+    const getCharByName = async (name) => { // делаем ф-ю ассинхронной для того что бы дождаться ответа от сервера и вызвать ф-ю  _transformCharacter
+    const res = await request(`${_apiBase}characters?name=${name}&${_apiKey}`); // записываем в переменную объект , который приходит из промиса
+    return res.data.results.map(_transformCharacter); // возвращаем работу метода(т.е новый объект)
+    }
 
     const _transformCharacter = (char) => { // возвращает объует уже с нужными свой-ми, char это res -> data ->results[0]
             return {
@@ -59,7 +63,7 @@ const useMarvelService = () => {
         }
     }
 
-    return {loading, request, error, getAllCharacters, getCharacter, clearError, getComics, getComic} // возвращаем loading, request, error для дальнейщего исп-я
+    return {loading, request, error, getAllCharacters, getCharacter, clearError, getComics, getComic, getCharByName} // возвращаем loading, request, error для дальнейщего исп-я
 }
 
 export default useMarvelService;

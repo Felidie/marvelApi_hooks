@@ -1,11 +1,11 @@
 import { useParams,useNavigate } from 'react-router-dom'
 import { useState, useEffect } from 'react';
 
-import './singleComicPage.scss';
-import Loader from '../spinner/Loader';
-import useMarvelService from '../../services/MarvelService';
-import Error from '../error/Error';
-import AppBanner from './../appBanner/AppBanner'
+import '../singleComicPage/singleComicPage.scss';
+import Loader from '../../spinner/Loader';
+import useMarvelService from '../../../services/MarvelService';
+import Error from '../../error/Error';
+import AppBanner from '../../appBanner/AppBanner'
 
 const SingleComicPage = () => {
     const {comicId} = useParams(); // вытаскиваем ключ comicId из хука
