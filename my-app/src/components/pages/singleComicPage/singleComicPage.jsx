@@ -1,68 +1,26 @@
-import { useParams,useNavigate } from 'react-router-dom'
-import { useState, useEffect } from 'react';
-
+import { useNavigate } from 'react-router-dom'
 import '../singleComicPage/singleComicPage.scss';
-import Loader from '../../spinner/Loader';
-import useMarvelService from '../../../services/MarvelService';
-import Error from '../../error/Error';
-import AppBanner from '../../appBanner/AppBanner'
 
-const SingleComicPage = () => {
-    const {comicId} = useParams(); // вытаскиваем ключ comicId из хука
-    const [comic, setComic] = useState(null);
-    const {loading, error, clearError, getComic} = useMarvelService();
-
+const SingleComicPage = ({data}) => {
+    const {thumbnail, title, description, pages, lang, price} = data;
     const navigate = useNavigate();
 
     const goBack = () => {
         navigate(-1)
     }
 
-    useEffect(() => {
-        updateComic();
-    },[comicId])
-   
-    const updateComic = () => {
-        clearError()
-        getComic(comicId)
-            .then(onComicLoaded)
-            
-    }
-
-    const onComicLoaded = (comic) => { // записываем в стейт объект , который пришел из промиса и ф-и .getCharacters
-        setComic(comic)
-    }
-
-
-    const View = ({comic}) => {
-        const {title, thumbnail, price, description, pages, lang} = comic;
-
-        return (
-            <div className="single-comic">
-                <img src={thumbnail} alt={title} className="single-comic__img"/>
-                    <div className="single-comic__info">
-                        <h2 className="single-comic__name">{title}</h2>
-                        <p className="single-comic__descr">{description}</p>
-                        <p className="single-comic__descr">{pages}</p>
-                        <p className="single-comic__descr">{lang}</p>
-                        <div className="single-comic__price">{price}</div>
-                    </div>
-                <div onClick ={goBack} className="single-comic__back">Back</div>
-            </div>
-        )
-    }
-
-    const errorMsg = error ? <Error/> : null
-    const spinner = loading ? <Loader/> : null
-    const content = !(loading || error || !comic) ? <View comic ={comic}/> : null
-
     return (
-       <>
-            <AppBanner/>
-            {errorMsg}
-            {spinner}
-            {content}
-       </>
+        <div className="single-comic">
+            <img src={thumbnail} alt={title} className="single-comic__img"/>
+                <div className="single-comic__info">
+                    <h2 className="single-comic__name">{title}</h2>
+                    <p className="single-comic__descr">{description}</p>
+                    <p className="single-comic__descr">{pages}</p>
+                    <p className="single-comic__descr">{lang}</p>
+                    <div className="single-comic__price">{price}</div>
+                </div>
+            <div onClick ={goBack} className="single-comic__back">Back</div>
+        </div>
     )
 }
 
