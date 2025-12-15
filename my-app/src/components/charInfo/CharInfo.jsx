@@ -1,11 +1,9 @@
 import './charInfo.scss';
 import { useState, useEffect } from 'react';
 import useMarvelService from '../../services/MarvelService';
+import setContent from '../../utils/setContent';
 
 
-import Loader from '../spinner/Loader';
-import Error from '../error/Error'
-import Skeleton from './../skeleton/Skeleton'
 import propTypes from 'prop-types'
 import errorImg from './../../resources/img/no-image.jpg'
 
@@ -14,7 +12,7 @@ const CharInfo = (props) => {
     const [char, setChar] = useState(false)
 
 
-    const {loading, err, getCharacter, clearError} = useMarvelService();
+    const {process, getCharacter, clearError, setProcess} = useMarvelService();
 
     useEffect(() => {
         updateChar();
@@ -30,36 +28,28 @@ const CharInfo = (props) => {
         clearError()
         getCharacter(charId)
             .then(onCharLoaded)
+            .then(()=> setProcess('confirmed'))
     }
 
     const onCharLoaded = (char) => { // записываем в стейт объект , который пришел из промиса и ф-и .getCharacters
         setChar(char)
     }
-     
-    const skeleton = char || loading || err ? null : <Skeleton/>
-    const errorMsg = err ? <Error/> : null
-    const spinner = loading ? <Loader/> : null
-    const content = !(loading || err || !char) ? <View char={char}/> : null
+
     return (
         <div className="char__info">
-            {skeleton}
-            {errorMsg}
-            {spinner}
-            {content}
+            {setContent(process, View, char)}
         </div>
     )
 }
 
-const View = ({char}) => {
-    const {name, thumbnail, description, homepage, wiki, comics, resourceURI} = char;
-    let imgStyle = {'objectFit' : 'cover'};
-    if (thumbnail === 'http://i.annihil.us/u/prod/marvel/i/mg/b/40/image_not_available.jpg') {
-        imgStyle = {'objectFit' : 'contain'};
-    }
+    const View = ({data}) => {
+        const {name, thumbnail, description, homepage, wiki, comics, resourceURI} = data;
+        let imgStyle = {'objectFit' : 'cover'};
+        if (thumbnail === 'http://i.annihil.us/u/prod/marvel/i/mg/b/40/image_not_available.jpg') {
+            imgStyle = {'objectFit' : 'contain'};
+        }
 
     // const getComicId = (uri) => uri.split('/').pop();
-
-    console.log(resourceURI)
 
 
     return (
@@ -89,7 +79,7 @@ const View = ({char}) => {
                    return (
                     <li className="char__comics-item" key={i}>
                         {/* <Link to={`/comics/${comicId}`} rel="noreferrer"> */}
-                            {item.name}
+                            {item}
                        {/* </Link> */}
                     </li>
                    )

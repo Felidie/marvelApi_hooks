@@ -1,16 +1,14 @@
 import './randomChar.scss';
 import { useState, useEffect } from 'react';
-import { useHttp } from '../hooks/http.hook';
 import errorImg from './../../resources/img/no-image.jpg'
 import mjolnir from './../../resources/img/mjolnir.png'
 import useMarvelService from '../../services/MarvelService';
-import Loader from '../spinner/Loader';
-import Error from '../error/Error';
+import setContent from '../../utils/setContent';
 
 const RandomChar = () => {
     const [char, setChar] = useState({});
 
-    const {loading, error, getCharacter, clearError} = useMarvelService(); //создаем новый экщемпляр марвел сервиса, где лежат все методы для обращения к апи
+    const {getCharacter, clearError, process, setProcess} = useMarvelService(); //создаем новый экщемпляр марвел сервиса, где лежат все методы для обращения к апи
 
     useEffect(() => {
        updateChar(); 
@@ -25,19 +23,14 @@ const RandomChar = () => {
         // const id = Math.floor(Math.random() * (1011400 - 1011000) + 1011000); Для оригинально апи марвел
         const id = Math.floor(Math.random() * 21);
         getCharacter(id) // метод с получение одного персножа с рандомный айди
-                     .then(onCharLoaded) // обрабатываем промис, колююеком передеаем ф-ю, которая записывает в стейт объект с персонажем char(char из 
+                     .then(onCharLoaded)
+                     .then(()=>setProcess('confirmed')) // обрабатываем промис, колююеком передеаем ф-ю, которая записывает в стейт объект с персонажем char(char из 
         //аргумента onCharLoaded подставляется как (res=>) ранее в промисе)
     }
         
-    const spinner = loading ? <Loader/> : null;
-    const errorMsg = error ? <Error/> : null;
-    const content = !(loading || error) ? <AfterLoading char={char}/> : null;
-    
     return (
         <div className="randomchar">
-            {spinner}
-            {errorMsg}
-            {content}
+            {setContent(process, AfterLoading, char)}
             <div className="randomchar__static">
                 <p className="randomchar__title">
                     Random character for today!<br/>
@@ -56,8 +49,8 @@ const RandomChar = () => {
     )
 }
 
-const AfterLoading = ({char}) => {
-    const {name, description, thumbnail, homepage, wiki} = char;
+const AfterLoading = ({data}) => {
+    const {name, description, thumbnail, homepage, wiki} = data;
     let imgStyle = {'objectFit' : 'cover'};
     if (thumbnail === 'http://i.annihil.us/u/prod/marvel/i/mg/b/40/image_not_available.jpg') {
         imgStyle = {'objectFit' : 'contain'};

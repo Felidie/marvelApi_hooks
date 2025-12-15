@@ -1,11 +1,35 @@
 import './charList.scss';
 import useMarvelService from '../../services/MarvelService';
-import Error from './../error/Error'
 import errorImg from './../../resources/img/no-image.jpg'
+import Loader from '../spinner/Loader';
+import Error from '../error/Error';
 import React, { useState, useEffect} from 'react';
 import {CSSTransition, TransitionGroup} from 'react-transition-group'
-import Loader from '../spinner/Loader';
 import propTypes from 'prop-types'
+
+
+const setContent = (process, Component, newItemLoading) => {
+    switch(process) {
+        case 'waiting' : {
+            return <Loader/>
+            break;
+        }
+        case 'loading' : {
+            return newItemLoading ? <Component/> : <Loader/>
+            break;
+        }
+        case 'confirmed' : {
+            return <Component/>
+            break;
+        }
+        case 'error' : {
+            return <Error/>
+            break;
+        }
+        default:
+            throw new Error('Something went wrong');
+    }
+}
 
 const CharList = (props) => {
 
@@ -19,7 +43,7 @@ const CharList = (props) => {
 
 
     
-    const {error, getAllCharacters} = useMarvelService(); // создаем новый объект класса
+    const {process, setProcess, getAllCharacters} = useMarvelService(); // создаем новый объект класса
 
     useEffect(() => {
         console.log('Первый рендер и загрузка персонажей')
@@ -42,6 +66,7 @@ const CharList = (props) => {
         setItemLoading(true);
         getAllCharacters(offset)
                         .then(onCharListLoaded)
+                        .then(() => setProcess('confirmed'))
                         console.log('Подгружаем персонажей')
         
     }
@@ -101,8 +126,8 @@ const CharList = (props) => {
     }
 
 const renderItems = (itemsList) => {
-      const items = itemsList.map((item, index) => {
-            let imgStyle = {'objectFit' : 'cover'};
+    const items = itemsList.map((item, index) => {
+        let imgStyle = {'objectFit' : 'cover'};
             if (item.thumbnail === 'http://i.annihil.us/u/prod/marvel/i/mg/b/40/image_not_available.jpg') {
             imgStyle = {'objectFit' : 'unset'};
             } 
@@ -114,33 +139,27 @@ const renderItems = (itemsList) => {
                         ref={itemRef}
                         key ={`${item.id}-${index}`}
                         onClick={() => props.onCharSelected(item.id)}
-                        onFocus={()=> onSetActiveId(item.id)}
-                        onMouseEnter={()=> onSetHoveredId(item.id)}>
+                        // onFocus={()=> onSetActiveId(item.id)}
+                        onMouseEnter={()=> onSetHoveredId(item.id)}
+                        >
                         <img src={item.thumbnail} alt="abyss" style={imgStyle} onError={(e) => e.target.src = errorImg}/>
                         <div className="char__name" >{item.name}</div>
                     </li>  
                 </CSSTransition>
             )
-        })
-        return (
-            <ul className="char__grid">
-              <TransitionGroup component={null}>
-                  {items}
-              </TransitionGroup>
-            </ul>
-        )
+    })
+    return (
+        <ul className="char__grid">
+            <TransitionGroup component={null}>
+                {items}
+            </TransitionGroup>
+        </ul>
+    )
 }
-
-    const items = renderItems(charList)
-
-    const errorMsg = error ? <Error/> : null
-    const spinner = newItemLoading ? <Loader/> : null
 
     return (
             <div className="char__list">
-                    {errorMsg}
-                    {spinner}
-                    {items}
+                    {setContent(process, () => renderItems(charList), newItemLoading)}
                 <button className="button button__main button__long"
                         onClick={() => onRequest(offset)}
                         disabled={newItemLoading}

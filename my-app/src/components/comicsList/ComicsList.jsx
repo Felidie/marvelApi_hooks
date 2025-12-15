@@ -1,9 +1,32 @@
 import './comicsList.scss';
 import useMarvelService from '../../services/MarvelService';
 import Loader from '../spinner/Loader';
+import Error from '../error/Error';
 import { useEffect, useState  } from 'react';
 import { Link} from 'react-router-dom';
 
+const setContent = (process, Component, newItemLoading) => {
+    switch(process) {
+        case 'waiting' : {
+            return <Loader/>
+            break;
+        }
+        case 'loading' : {
+            return newItemLoading ? <Component/> : <Loader/>
+            break;
+        }
+        case 'confirmed' : {
+            return <Component/>
+            break;
+        }
+        case 'error' : {
+            return <Error/>
+            break;
+        }
+        default:
+            throw new Error('Something went wrong');
+    }
+}
 
 const ComicsList = () => {
 
@@ -14,7 +37,7 @@ const ComicsList = () => {
     const [pageUp, setPageUp] = useState(false);
     // const [activeId, setActiveId] =  useState(null);
 
-    const {error, getComics} = useMarvelService();
+    const {getComics, process, setProcess} = useMarvelService();
 
     useEffect(() => {
         onRequest();
@@ -24,10 +47,10 @@ const ComicsList = () => {
     
     const onRequest = (offset) => {
         if (newItemLoading || listEnded) return;
-        setItemLoading(true);
+        setItemLoading(true)
         getComics(offset)
                 .then(onComicsListLoaded)
-                console.log('Запрос')
+                .then(() => setProcess('confirmed'))
     }
 
     
@@ -107,17 +130,9 @@ const ComicsList = () => {
        
     }
 
-    const items = renderComics(list);
-   
-    const errorMsg = error ? <Error/> : null
-    const spinner = newItemLoading ? <Loader/> : null
     return (
         <div className="comics__list">
-
-            {errorMsg}
-            {spinner}
-            {items}
-            
+            {setContent(process, () => renderComics(list), newItemLoading)}      
             <button 
                 className="button button__main button__long"
                 onClick={() => onRequest(offset)}
