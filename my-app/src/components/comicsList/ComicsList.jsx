@@ -8,7 +8,7 @@ import { Link} from 'react-router-dom';
 const ComicsList = () => {
 
     const [list, setComicList] = useState([]);
-    const [offset, setOffset] = useState(18);
+    const [offset, setOffset] = useState(null);
     const [newItemLoading, setItemLoading] = useState(false);
     const [listEnded, setListEnded] = useState(false);
     const [pageUp, setPageUp] = useState(false);
@@ -121,7 +121,8 @@ const ComicsList = () => {
             <button 
                 className="button button__main button__long"
                 onClick={() => onRequest(offset)}
-                disabled={newItemLoading || listEnded}>
+                disabled={newItemLoading || listEnded}
+                >
             
                 <div className="inner">load more</div>
             </button>
